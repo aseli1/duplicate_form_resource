@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 from pydevice import DeviceMagic
+import logging
 import json
 import base64
+
+logging.basicConfig(level=logging.INFO)
 
 dm1_args = {'org_id': '185280',
             'api_key': 'Basic RWtuSG9GelVWNkZ2aWZ2a1lZS3c6eA=='}
@@ -28,7 +31,7 @@ def merge_content(base_id, second_org):
     clone_details = clone_resource_second_org(
         base_id, base_details, second_org)
     clone_filename = clone_details['resource']['original_filename']
-    print("Resource clone created: {}".format(clone_filename))
+    logging.info("Resource clone created: {}".format(clone_filename))
     clone_id = clone_details['resource']['id']
     base_identifier = base_details['resource']['identifier']
     clone_identifier = clone_details['resource']['identifier']
@@ -59,7 +62,7 @@ def match_resource(
     for id in resource_ids[index:]:
         resource = dm1.resource.details(id)['resource']
         if resource['identifier'] == options_resource:
-            print("Resource located")
+            logging.info("Resource located")
             content = merge_content(id, second_org)
             fetched_resources[resource['identifier']] = \
                 {"id": id, "content": content}
@@ -95,7 +98,7 @@ def link_cloned_resource(question, content):
         for column in content['columns']:
             filter_expression = filter_expression.replace(column[0], column[1])
         question['options_filter_expr'] = filter_expression
-    print("Question successfully linked to resource\n")
+    logging.info("Question successfully linked to resource")
 
 
 def link_select_question(section, fetched_resources, second_org):
@@ -120,12 +123,12 @@ def replace_select_questions(
             replace_select_questions(section["children"], resource_ids, index,
                                      fetched_resources, second_org)
         elif type == "select" and "options_resource" in section.keys():
-            print(
+            logging.info(
                 "Replacing resource in question - {}".format(section['title']))
             if section["options_resource"] in fetched_resources.keys():
                 link_select_question(section, fetched_resources, second_org)
             else:
-                print("Searching for resource...")
+                logging.info("Searching for resource...")
                 index = match_resource(section, index, resource_ids,
                                        fetched_resources, second_org)
         else:
@@ -139,7 +142,7 @@ def main():
     for resource in resources:
         resource_ids.append(resource['id'])
 
-    print("Resource id's copied from organizations...\n")
+    logging.info("Resource id's copied from organizations...")
 
     data = dm1.form.details(9965660)  # Retrieve form definition from Account 1
     fetched_resources = {}
@@ -149,7 +152,7 @@ def main():
     cloned_form = json.dumps(data)
 
     form = dm2.form.create(cloned_form)  # Create form in Account 2
-    print("Form created: {}".format(form['name']))
+    logging.info("Form created: {}".format(form['name']))
 
 
 if __name__ == "__main__":
