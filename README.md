@@ -1,5 +1,5 @@
 # duplicate_form_resource
-Organization management tool which duplicates forms and resources across multiple organizations. This tool utilizes [pydevice](https://github.com/aseli1/pydevice).
+Account management tool which duplicates forms and resources across organizations in Device Magic. This tool utilizes [pydevice](https://github.com/aseli1/pydevice).
 
 Supports:
 [Select questions](https://docs.devicemagic.com/en/articles/392920-select-options-from-a-resource),
