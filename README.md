@@ -2,9 +2,8 @@
 Organization management tool which duplicates forms and resources across multiple organizations. This tool utilizes [pydevice](https://github.com/aseli1/pydevice).
 
 Supports:
-[Select questions](https://docs.devicemagic.com/en/articles/392920-select-options-from-a-resource)
-[Attached files](https://docs.devicemagic.com/en/articles/392966-attached-file)
-[Calculated questions](https://docs.devicemagic.com/en/articles/392923-lookup-function-for-calculated-questions)
+[Select questions](https://docs.devicemagic.com/en/articles/392920-select-options-from-a-resource),
+[Attached files](https://docs.devicemagic.com/en/articles/392966-attached-file), and [Calculated questions](https://docs.devicemagic.com/en/articles/392923-lookup-function-for-calculated-questions)
 
 ## Installation
 
