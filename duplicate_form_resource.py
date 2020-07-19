@@ -164,7 +164,7 @@ def generate_question(type, content_summary):
 def replace_calculated_expression(section, fetched_resources, resource_ids,
                                   first_org, second_org, index):
     lookup_occurrences = \
-        re.findall(r'LOOKUP.*\)', section['calculate_expr'])
+        re.findall(r'LOOKUP\([^)]+\)', section['calculate_expr'])
     if len(lookup_occurrences) > 0:
         logging.info(
             "Replacing calculated expression in question \"{}\"".format(
@@ -199,62 +199,68 @@ def replace_question_resource(section, index, resource_ids,
     return question
 
 
-def clone_replace_resources(sections, resource_ids, index,
+def clone_replace_resources(elements, resource_ids, index,
                             fetched_resources, first_org, second_org):
-    for section in sections:
-        type = section['type']
-        if 'children' in section.keys():
-            clone_replace_resources(section['children'], resource_ids, index,
+    for element in elements:
+        type = element['type']
+        if 'children' in element.keys():
+            clone_replace_resources(element['children'], resource_ids, index,
                                     fetched_resources, first_org, second_org)
-        elif type == 'select' and 'options_resource' in section.keys():
+        elif type == 'select' and 'options_resource' in element.keys():
             logging.info(
                 'Replacing resource in question \'{}\''.format(
-                    section['title']))
-            replace_question_resource(section, index, resource_ids,
+                    element['title']))
+            replace_question_resource(element, index, resource_ids,
                                       fetched_resources, first_org, second_org)
         elif type == 'resource':
             logging.info(
                 'Replacing attached file resource in question \'{}\''.format(
-                    section['title']))
-            replace_question_resource(section, index, resource_ids,
+                    element['title']))
+            replace_question_resource(element, index, resource_ids,
                                       fetched_resources, first_org, second_org)
-        elif type == 'calculated' and 'LOOKUP' in section['calculate_expr']:
-            replace_calculated_expression(section, fetched_resources,
+        elif type == 'calculated' and 'LOOKUP' in element['calculate_expr']:
+            replace_calculated_expression(element, fetched_resources,
                                           resource_ids, first_org, second_org,
                                           index)
         else:
             continue
-    return sections
+    return elements
 
 
 def main():
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig()
 
-    dm1_args = {'org_id': '185280',
-                'api_key': 'Basic RWtuSG9GelVWNkZ2aWZ2a1lZS3c6eA=='}
+    dm_one_args = {'org_id': 'ORG_ID_ONE',
+                   'api_key': 'API_KEY_ONE'}
 
-    dm2_args = {'org_id': '38298',
-                'api_key': 'Basic c3ppZ3JURnV4ZlJ6VUN4ejNhWjk6eA=='}
+    dm_two_args = {'org_id': 'ORG_ID_TWO',
+                   'api_key': 'API_KEY_TWO'}
 
-    dm1 = DeviceMagic(dm1_args)  # Account 1
-    dm2 = DeviceMagic(dm2_args)  # Account 2
+    dm_one = DeviceMagic(dm_one_args)  # Account 1
+    dm_two = DeviceMagic(dm_two_args)  # Account 2
 
-    resources = dm1.resource.all()['resources']  # Fetch all resources ids
+    resources = dm_one.resource.all()['resources']  # Fetch all resources ids
     resource_ids = []
     for resource in resources:
         resource_ids.append(resource['id'])
 
     logging.info("Resource id's copied from organization...")
 
-    data = dm1.form.details(9965660)  # Retrieve form definition from Account 1
+    form_ids = []  # Forms to copy
     fetched_resources = {}
     index = 0
-    data['children'] = clone_replace_resources(
-        data['children'], resource_ids, index, fetched_resources, dm1, dm2)
-    cloned_form = json.dumps(data)
+    for id in form_ids:
+        data = dm_one.form.details(id)  # Retrieve the form definition
+        data['children'] = clone_replace_resources(data['children'],
+                                                   resource_ids,
+                                                   index,
+                                                   fetched_resources,
+                                                   dm_one,
+                                                   dm_two)
+        cloned_form = json.dumps(data)
 
-    form = dm2.form.create(cloned_form)  # Create form in Account 2
-    logging.info('Form created: {}'.format(form['name']))
+        form = dm_two.form.create(cloned_form)  # Create form in Account 2
+        print('Form created: {}'.format(form['name']))
 
 
 if __name__ == "__main__":
